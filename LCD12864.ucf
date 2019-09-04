@@ -16,14 +16,17 @@ NET "LCD_P"  LOC =  "p65"    ;
 NET "PSB"  LOC = "p61"  ;
 NET "LCD_RST"  LOC =  "p63"    ;
 
-NET "key_up"  LOC = "p122"  ;
-NET "key_down"  LOC = "p116"  ;
-NET "key_left"  LOC = "p119"  ;
-NET "key_right"  LOC = "p120"  ;
-NET "key_press"  LOC = "p115"  ;
+NET "key_col[0]"  LOC = "p146"  ;
+NET "key_col[1]"  LOC = "p150"  ;
+NET "key_col[2]"  LOC = "p152"  ;
+NET "key_col[3]"  LOC = "p160"  ;
 
-NET "key_up"    PULLUP;
-NET  "key_down"   PULLUP;
-NET "key_left"   PULLUP;
-NET "key_right"   PULLUP;
-NET "key_press"   PULLUP;
+NET "key_row[0]"  LOC = "p144"  ;
+NET "key_row[1]"  LOC = "p139"  ;
+NET "key_row[2]"  LOC = "p137"  ;
+NET "key_row[3]"  LOC = "p134"  ;
+
+NET "key_row[0]"  PULLDOWN;
+NET "key_row[1]"  PULLDOWN;
+NET "key_row[2]"  PULLDOWN;
+NET "key_row[3]"  PULLDOWN;
