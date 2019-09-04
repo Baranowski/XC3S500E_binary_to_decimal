@@ -6,13 +6,29 @@ output reg LCD_RST;
 output reg PSB;
 input clk;  
 
+//////// 1MHz clock
+reg clk_1mhz = 0;
+reg [7:0] clk_1mhz_cnt = 8'h00;
+always @(posedge clk)
+begin
+  if (clk_1mhz_cnt >= 50)
+  begin
+    clk_1mhz_cnt <= 0;
+    clk_1mhz <= ~clk_1mhz;
+  end else
+    clk_1mhz_cnt <= clk_1mhz_cnt + 1;
+end
+/////// 1Mhz clock end
 /////// 4x4 KEYPAD
 output reg [3:0] key_col = 4'b1111;
 input [3:0] key_row;
 reg [15:0] keypad = 16'h0000;
+reg [15:0] prev_keypad = 16'h0000;
+reg [15:0] bits = 16'h0000;
+
 reg [2:0] key_i = 3'b000;
 integer keypad_iter;
-always @(posedge clk)
+always @(posedge clk_1mhz)
 begin
   key_col[3] <= key_i[2] && key_i[1];
   key_col[2] <= key_i[2] && !key_i[1];
@@ -24,6 +40,11 @@ begin
       keypad[keypad_iter*4+:4] <= key_row;
     else
       keypad[keypad_iter*4+:4] <= keypad[keypad_iter*4+:4];
+  end
+  if (key_i[0])
+  begin
+    bits <= bits ^ (keypad & ~prev_keypad);
+    prev_keypad <= keypad;
   end
   key_i <= key_i + 1;
 end
@@ -129,22 +150,22 @@ begin
 			 set2:   begin  rs<=0; dat<=8'b00000010; next<=set4; end 
 			 set4:   begin  rs<=0; dat<=8'b00000110; next<=dat0; end// 
 		
-			 dat0:   begin  rs<=1; dat<=keypad[15]+"0"; next<=dat1; end //?????
-			 dat1:   begin  rs<=1; dat<=keypad[14]+"0"; next<=dat2; end //?????
-			 dat2:   begin  rs<=1; dat<=keypad[13]+"0"; next<=dat3; end //?????
-			 dat3:   begin  rs<=1; dat<=keypad[12]+"0"; next<=dat4; end //?????
-			 dat4:   begin  rs<=1; dat<=keypad[11]+"0"; next<=dat5; end //?????
-			 dat5:   begin  rs<=1; dat<=keypad[10]+"0"; next<=dat6; end //?????
-			 dat6:   begin  rs<=1; dat<=keypad[9]+"0"; next<=dat7; end //?????
-			 dat7:   begin  rs<=1; dat<=keypad[8]+"0"; next<=dat8; end //?????
-			 dat8:   begin  rs<=1; dat<=keypad[7]+"0"; next<=dat9; end //?????
-			 dat9:   begin  rs<=1; dat<=keypad[6]+"0"; next<=dat10;end //?????
-			 dat10:  begin  rs<=1; dat<=keypad[5]+"0"; next<=dat11;end //?????
-			 dat11:  begin  rs<=1; dat<=keypad[4]+"0"; next<=dat12;end //?????
-			 dat12:  begin  rs<=1; dat<=keypad[3]+"0"; next<=dat13;end //?????
-			 dat13:  begin  rs<=1; dat<=keypad[2]+"0"; next<=dat14;end //?????
-			 dat14:  begin  rs<=1; dat<=keypad[1]+"0"; next<=dat15;end //?????
-			 dat15:  begin  rs<=1; dat<=keypad[0]+"0"; next<=nul; end 
+			 dat0:   begin  rs<=1; dat<=bits[15]+"0"; next<=dat1; end //?????
+			 dat1:   begin  rs<=1; dat<=bits[14]+"0"; next<=dat2; end //?????
+			 dat2:   begin  rs<=1; dat<=bits[13]+"0"; next<=dat3; end //?????
+			 dat3:   begin  rs<=1; dat<=bits[12]+"0"; next<=dat4; end //?????
+			 dat4:   begin  rs<=1; dat<=bits[11]+"0"; next<=dat5; end //?????
+			 dat5:   begin  rs<=1; dat<=bits[10]+"0"; next<=dat6; end //?????
+			 dat6:   begin  rs<=1; dat<=bits[9]+"0"; next<=dat7; end //?????
+			 dat7:   begin  rs<=1; dat<=bits[8]+"0"; next<=dat8; end //?????
+			 dat8:   begin  rs<=1; dat<=bits[7]+"0"; next<=dat9; end //?????
+			 dat9:   begin  rs<=1; dat<=bits[6]+"0"; next<=dat10;end //?????
+			 dat10:  begin  rs<=1; dat<=bits[5]+"0"; next<=dat11;end //?????
+			 dat11:  begin  rs<=1; dat<=bits[4]+"0"; next<=dat12;end //?????
+			 dat12:  begin  rs<=1; dat<=bits[3]+"0"; next<=dat13;end //?????
+			 dat13:  begin  rs<=1; dat<=bits[2]+"0"; next<=dat14;end //?????
+			 dat14:  begin  rs<=1; dat<=bits[1]+"0"; next<=dat15;end //?????
+			 dat15:  begin  rs<=1; dat<=bits[0]+"0"; next<=nul; end 
 			
 			  nul:   begin rs<=0;  dat<=8'h00;                    // ????E ? ?? 
 				         if(cnt!=2'h2)  
