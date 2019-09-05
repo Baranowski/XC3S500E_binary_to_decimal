@@ -93,13 +93,11 @@ end
  output [7:0] dat; 
  output reg rs,rw,en; 
  //tri en; 
- reg e; 
  reg [7:0] dat; 
   
  reg  [31:0] counter=0; 
  reg [6:0] current=0,next=0; 
  reg clkr; 
- reg [31:0] cnt=0; 
  parameter  set0=6'h0; 
  parameter  set1=6'h1; 
  parameter  set2=6'h2; 
@@ -166,7 +164,7 @@ always @(posedge clk)         //da de shi zhong pinlv
   else if((counter==32'hF)) begin//||(counter==32'h57FE)
   clkr<=~clkr; 
   end
-en<=clkr|e; 
+en<=clkr;
 rw<=0; 
 LCD_N<=1'b0;
 LCD_P<=1'b1;
@@ -210,18 +208,7 @@ begin
 			 dat17:  begin  rs<=1; dat<=decimal[3]+"0"; next<=dat18;end 
 			 dat18:  begin  rs<=1; dat<=decimal[2]+"0"; next<=dat19;end 
 			 dat19:  begin  rs<=1; dat<=decimal[1]+"0"; next<=dat20;end 
-			 dat20:  begin  rs<=1; dat<=decimal[0]+"0"; next<=nul;end 
-			
-			  nul:   begin rs<=0;  dat<=8'h00;                    // ????E ? ?? 
-				         if(cnt!=2'h2)  
-                      begin  
-                       e<=0;current<=set0;cnt<=cnt+1;  
-                      end  
-                     else  
-                      begin current<=set0; e<=1;cnt<=0; 
-                     end  
-					   end 
-             
+			 dat20:  begin  rs<=1; dat<=decimal[0]+"0"; next<=set0;end 
 
 			default:   next<=set0; 
 			 endcase 
