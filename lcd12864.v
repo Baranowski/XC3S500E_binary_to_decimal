@@ -50,6 +50,46 @@ begin
 end
 /////// 4x4 KEYPAD end
 
+//////// Decimal
+reg [3:0] decimal[4:0];
+reg [3:0] d_tmp[4:0];
+reg [16:0] b_tmp;
+reg [2:0] digit = 3'b111;
+integer decimal_i;
+
+initial begin
+  for (decimal_i = 0; decimal_i < 5; decimal_i=decimal_i+1) begin
+    decimal[decimal_i] <= 0;
+    d_tmp[decimal_i] <= 0;
+  end
+  b_tmp <= 0;
+end
+
+always @(posedge clk) begin
+  if (digit == 3'b111) begin
+    for (decimal_i = 0; decimal_i < 5; decimal_i=decimal_i+1) begin
+      decimal[decimal_i] <= d_tmp[decimal_i];
+      d_tmp[decimal_i] <= 0;
+    end
+    b_tmp <= 0;
+    digit <= 4;
+  end else begin
+    for (decimal_i = 0; decimal_i < 5; decimal_i=decimal_i+1) begin
+      if (digit == decimal_i) begin
+        if (b_tmp <= bits) begin
+          b_tmp <= b_tmp + 10**decimal_i;
+          d_tmp[decimal_i] <= d_tmp[decimal_i] + 1;
+        end else begin
+          b_tmp <= b_tmp - 10**decimal_i;
+          d_tmp[decimal_i] <= d_tmp[decimal_i] - 1;
+          digit <= digit - 1;
+        end
+      end
+    end
+  end
+end
+//////// Decimal end
+
  output [7:0] dat; 
  output reg rs,rw,en; 
  //tri en; 
@@ -165,7 +205,12 @@ begin
 			 dat12:  begin  rs<=1; dat<=bits[3]+"0"; next<=dat13;end //?????
 			 dat13:  begin  rs<=1; dat<=bits[2]+"0"; next<=dat14;end //?????
 			 dat14:  begin  rs<=1; dat<=bits[1]+"0"; next<=dat15;end //?????
-			 dat15:  begin  rs<=1; dat<=bits[0]+"0"; next<=nul; end 
+			 dat15:  begin  rs<=1; dat<=bits[0]+"0"; next<=dat16;end 
+			 dat16:  begin  rs<=1; dat<=decimal[4]+"0"; next<=dat17;end 
+			 dat17:  begin  rs<=1; dat<=decimal[3]+"0"; next<=dat18;end 
+			 dat18:  begin  rs<=1; dat<=decimal[2]+"0"; next<=dat19;end 
+			 dat19:  begin  rs<=1; dat<=decimal[1]+"0"; next<=dat20;end 
+			 dat20:  begin  rs<=1; dat<=decimal[0]+"0"; next<=nul;end 
 			
 			  nul:   begin rs<=0;  dat<=8'h00;                    // ????E ? ?? 
 				         if(cnt!=2'h2)  
