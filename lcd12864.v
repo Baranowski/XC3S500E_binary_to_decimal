@@ -39,6 +39,49 @@ module keypad4x4(clk, cols, rows, value);
   end
 endmodule //keypad4x4
 
+module decimal_converter(clk, bits, value);
+  input clk;
+  input [15:0] bits;
+  output reg [19:0] value;
+
+  reg [3:0] d_tmp[4:0];
+  reg [16:0] b_tmp;
+  reg [2:0] digit = 3'b111;
+  integer i;
+
+  initial begin
+    for (i = 0; i < 5; i=i+1) begin
+      value[i] <= 0;
+      d_tmp[i] <= 0;
+    end
+    b_tmp <= 0;
+  end
+
+  always @(posedge clk) begin
+    if (digit == 3'b111) begin
+      for (i = 0; i < 5; i=i+1) begin
+        value[i*4 +: 4] <= d_tmp[i];
+        d_tmp[i] <= 0;
+      end
+      b_tmp <= 0;
+      digit <= 4;
+    end else begin
+      for (i = 0; i < 5; i=i+1) begin
+        if (digit == i) begin
+          if (b_tmp <= bits) begin
+            b_tmp <= b_tmp + 10**i;
+            d_tmp[i] <= d_tmp[i] + 1;
+          end else begin
+            b_tmp <= b_tmp - 10**i;
+            d_tmp[i] <= d_tmp[i] - 1;
+            digit <= digit - 1;
+          end
+        end
+      end
+    end
+  end
+endmodule //decimal_converter
+
 module lcd12864(LCD_N,LCD_P,LCD_RST,PSB,clk, rs, rw, en,dat,
                 key_col, key_row);
 output reg LCD_N;
@@ -63,44 +106,8 @@ always @(posedge clk_1MHz) begin
 end
 
 //////// Decimal
-reg [3:0] decimal[4:0];
-reg [3:0] d_tmp[4:0];
-reg [16:0] b_tmp;
-reg [2:0] digit = 3'b111;
-integer decimal_i;
-
-initial begin
-  for (decimal_i = 0; decimal_i < 5; decimal_i=decimal_i+1) begin
-    decimal[decimal_i] <= 0;
-    d_tmp[decimal_i] <= 0;
-  end
-  b_tmp <= 0;
-end
-
-always @(posedge clk) begin
-  if (digit == 3'b111) begin
-    for (decimal_i = 0; decimal_i < 5; decimal_i=decimal_i+1) begin
-      decimal[decimal_i] <= d_tmp[decimal_i];
-      d_tmp[decimal_i] <= 0;
-    end
-    b_tmp <= 0;
-    digit <= 4;
-  end else begin
-    for (decimal_i = 0; decimal_i < 5; decimal_i=decimal_i+1) begin
-      if (digit == decimal_i) begin
-        if (b_tmp <= bits) begin
-          b_tmp <= b_tmp + 10**decimal_i;
-          d_tmp[decimal_i] <= d_tmp[decimal_i] + 1;
-        end else begin
-          b_tmp <= b_tmp - 10**decimal_i;
-          d_tmp[decimal_i] <= d_tmp[decimal_i] - 1;
-          digit <= digit - 1;
-        end
-      end
-    end
-  end
-end
-//////// Decimal end
+wire [19:0] decimal;
+decimal_converter convert(clk, bits, decimal);
 
  output [7:0] dat; 
  output reg rs,rw,en; 
@@ -216,11 +223,11 @@ begin
 			 dat13:  begin  rs<=1; dat<=bits[2]+"0"; next<=dat14;end //?????
 			 dat14:  begin  rs<=1; dat<=bits[1]+"0"; next<=dat15;end //?????
 			 dat15:  begin  rs<=1; dat<=bits[0]+"0"; next<=dat16;end 
-			 dat16:  begin  rs<=1; dat<=decimal[4]+"0"; next<=dat17;end 
-			 dat17:  begin  rs<=1; dat<=decimal[3]+"0"; next<=dat18;end 
-			 dat18:  begin  rs<=1; dat<=decimal[2]+"0"; next<=dat19;end 
-			 dat19:  begin  rs<=1; dat<=decimal[1]+"0"; next<=dat20;end 
-			 dat20:  begin  rs<=1; dat<=decimal[0]+"0"; next<=set0;end 
+			 dat16:  begin  rs<=1; dat<=decimal[19:16]+"0"; next<=dat17;end 
+			 dat17:  begin  rs<=1; dat<=decimal[15:12]+"0"; next<=dat18;end 
+			 dat18:  begin  rs<=1; dat<=decimal[11:8]+"0"; next<=dat19;end 
+			 dat19:  begin  rs<=1; dat<=decimal[7:4]+"0"; next<=dat20;end 
+			 dat20:  begin  rs<=1; dat<=decimal[3:0]+"0"; next<=set0;end 
 
 			default:   next<=set0; 
 			 endcase 
