@@ -1,54 +1,66 @@
+module clock_slow(in_clock, out_clock);
+  parameter factor = 50;
+  input in_clock;
+  output reg out_clock = 0;
+  reg [7:0] cnt = 0;
+
+  always @(posedge in_clock)
+  begin
+    if (cnt >= factor) begin
+      cnt <= 0;
+      out_clock <= ~out_clock;
+    end else
+      cnt <= cnt + 1;
+  end
+endmodule //clock_slow
+
+module keypad4x4(clk, cols, rows, value);
+  output reg [3:0] cols = 4'b1111;
+  output reg [15:0] value = 0;
+  input [3:0] rows;
+  input clk;
+
+  reg [2:0] current_col = 3'b000;
+  integer i;
+  always @(posedge clk)
+  begin
+    cols[3] <= current_col[2] && current_col[1];
+    cols[2] <= current_col[2] && !current_col[1];
+    cols[1] <= !current_col[2] && current_col[1];
+    cols[0] <= !current_col[2] && !current_col[1];
+    for (i=0; i<4; i=i+1)
+    begin
+      if (cols[i] && current_col[0])
+        value[i*4 +: 4] <= rows;
+      else
+        value[i*4 +: 4] <= value[i*4 +: 4];
+    end
+    current_col <= current_col + 1;
+  end
+endmodule //keypad4x4
+
 module lcd12864(LCD_N,LCD_P,LCD_RST,PSB,clk, rs, rw, en,dat,
                 key_col, key_row);
-output reg  LCD_N;
+output reg LCD_N;
 output reg LCD_P;
 output reg LCD_RST;
 output reg PSB;
 input clk;  
 
-//////// 1MHz clock
-reg clk_1mhz = 0;
-reg [7:0] clk_1mhz_cnt = 8'h00;
-always @(posedge clk)
-begin
-  if (clk_1mhz_cnt >= 50)
-  begin
-    clk_1mhz_cnt <= 0;
-    clk_1mhz <= ~clk_1mhz;
-  end else
-    clk_1mhz_cnt <= clk_1mhz_cnt + 1;
-end
-/////// 1Mhz clock end
-/////// 4x4 KEYPAD
-output reg [3:0] key_col = 4'b1111;
-input [3:0] key_row;
-reg [15:0] keypad = 16'h0000;
-reg [15:0] prev_keypad = 16'h0000;
-reg [15:0] bits = 16'h0000;
+wire clk_1MHz;
+clock_slow clock_keypad(clk, clk_1MHz);
 
-reg [2:0] key_i = 3'b000;
-integer keypad_iter;
-always @(posedge clk_1mhz)
-begin
-  key_col[3] <= key_i[2] && key_i[1];
-  key_col[2] <= key_i[2] && !key_i[1];
-  key_col[1] <= !key_i[2] && key_i[1];
-  key_col[0] <= !key_i[2] && !key_i[1];
-  for (keypad_iter=0; keypad_iter<4; keypad_iter=keypad_iter+1)
-  begin
-    if (key_col[keypad_iter] && key_i[0])
-      keypad[keypad_iter*4+:4] <= key_row;
-    else
-      keypad[keypad_iter*4+:4] <= keypad[keypad_iter*4+:4];
-  end
-  if (key_i[0])
-  begin
-    bits <= bits ^ (keypad & ~prev_keypad);
-    prev_keypad <= keypad;
-  end
-  key_i <= key_i + 1;
+output [3:0] key_col;
+input [3:0] key_row;
+wire [15:0] keys;
+reg [15:0] prev_keys= 16'h0000;
+keypad4x4 keypad(clk_1MHz, key_col, key_row, keys);
+
+reg [15:0] bits = 16'h0000;
+always @(posedge clk_1MHz) begin
+  bits <= bits ^ (keys & ~prev_keys);
+  prev_keys <= keys;
 end
-/////// 4x4 KEYPAD end
 
 //////// Decimal
 reg [3:0] decimal[4:0];
