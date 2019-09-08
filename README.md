@@ -14,7 +14,7 @@ in base 10.
 * Download the demo package from the link above
 * Open any of the sample verilog project in the package (LCD12864 works for me)
 * Replace the \*.v and \*.ucf files with the sources in this repo.
-* Generate Programming File and Program as usual (See https://www.youtube.com/watch?v=\_lZcWH0gjIw for a walkthrough if this is your first time).
+* Generate Programming File and Program as usual (See https://www.youtube.com/watch?v=_lZcWH0gjIw for a walkthrough if this is your first time).
 
 Yes, I know the whole "copy a project and replace sources" approach is lame, but
 I haven't figured out yet how to create a new project that will work.
