@@ -1,4 +1,5 @@
 module clock_slow(in_clock, out_clock);
+  // out_clock will be in_clock slowed down by 2*factor
   parameter factor = 50;
   parameter reg_width = 8;
   input in_clock;
@@ -15,6 +16,11 @@ module clock_slow(in_clock, out_clock);
   end
 endmodule //clock_slow
 
+// Output cols to scan the keypad column by column; read rows while doing so.
+// The output [15:0] contains bitmap with 1's for pressed keys and 0's for
+// released. A value in the bitmap might change only when the corresponding
+// column is scanned (i.e., there is no flickering caused by the
+// column-by-column sweep).
 module keypad4x4(clk, cols, rows, value);
   output reg [3:0] cols = 4'b1111;
   output reg [15:0] value = 0;
@@ -40,6 +46,11 @@ module keypad4x4(clk, cols, rows, value);
   end
 endmodule //keypad4x4
 
+// Read 16 bits and produce 4-bit representations of base-10 digits (five of
+// those). The most significant digit is stored in the highest 4 bits. If the
+// value of the input (bits) changes during a single pass, the output value is
+// undetermined for a short time, but that's ok since the output is meant to be
+// consumed by a human.
 module decimal_converter(clk, bits, value);
   input clk;
   input [15:0] bits;
@@ -83,6 +94,8 @@ module decimal_converter(clk, bits, value);
   end
 endmodule //decimal_converter
 
+// Display the 16 bits in the first row of the display
+// Display the 5 digits (encoded with 4 bits each) in the second row
 module lcd(clk, N, P, RST, PSB, rs, rw, en, dat, bits, decimals);
   output reg N;
   output reg P;
@@ -100,7 +113,7 @@ module lcd(clk, N, P, RST, PSB, rs, rw, en, dat, bits, decimals);
                .reg_width(32))
              clock_lcd(clk, clk_380Hz);
 
-  reg [6:0] next=0; 
+  reg [4:0] state=0; 
 
   initial
   begin
@@ -117,62 +130,35 @@ module lcd(clk, N, P, RST, PSB, rs, rw, en, dat, bits, decimals);
     PSB<=1'b1;
   end 
 
-  parameter  set0=6'h0; 
-  parameter  set1=6'h1; 
-  parameter  set2=6'h2; 
-  parameter  set3=6'h3; 
-  parameter  set4=6'h4; 
-  parameter  dat0=6'h7; 
-  parameter  dat1=6'h8; 
-  parameter  dat2=6'h9; 
-  parameter  dat3=6'hA; 
-  parameter  dat4=6'hB; 
-  parameter  dat5=6'hC;
-  parameter  dat6=6'hD; 
-  parameter  dat7=6'hE; 
-  parameter  dat8=6'hF; 
-  parameter  dat9=6'h10;
-  parameter  dat10=6'h12; 
-  parameter  dat11=6'h13; 
-  parameter  dat12=6'h14; 
-  parameter  dat13=6'h15; 
-  parameter  dat14=6'h16; 
-  parameter  dat15=6'h17;
-  parameter  dat16=6'h18; 
-  parameter  dat17=6'h19; 
-  parameter  dat18=6'h1A; 
-  parameter  dat19=6'h1B; 
-  parameter  dat20=6'h1C;
-
   always @(posedge clk_380Hz) begin 
-    case(next) 
-      set0:   begin  rs<=0; dat<=8'b00110000; next<=set1; end 
-      set1:   begin  rs<=0; dat<=8'b00001100; next<=set2; end 
-      set2:   begin  rs<=0; dat<=8'b00000010; next<=set4; end 
-      set4:   begin  rs<=0; dat<=8'b00000110; next<=dat0; end// 
+    case(state) 
+      0:   begin  rs<=0; dat<=8'b00110000; state<=1; end 
+      1:   begin  rs<=0; dat<=8'b00001100; state<=2; end 
+      2:   begin  rs<=0; dat<=8'b00000110; state<=3; end// 
+      3:   begin  rs<=0; dat<=8'b00000010; state<=4; end 
    
-      dat0:   begin  rs<=1; dat<=bits[15]+"0"; next<=dat1; end //?????
-      dat1:   begin  rs<=1; dat<=bits[14]+"0"; next<=dat2; end //?????
-      dat2:   begin  rs<=1; dat<=bits[13]+"0"; next<=dat3; end //?????
-      dat3:   begin  rs<=1; dat<=bits[12]+"0"; next<=dat4; end //?????
-      dat4:   begin  rs<=1; dat<=bits[11]+"0"; next<=dat5; end //?????
-      dat5:   begin  rs<=1; dat<=bits[10]+"0"; next<=dat6; end //?????
-      dat6:   begin  rs<=1; dat<=bits[9]+"0"; next<=dat7; end //?????
-      dat7:   begin  rs<=1; dat<=bits[8]+"0"; next<=dat8; end //?????
-      dat8:   begin  rs<=1; dat<=bits[7]+"0"; next<=dat9; end //?????
-      dat9:   begin  rs<=1; dat<=bits[6]+"0"; next<=dat10;end //?????
-      dat10:  begin  rs<=1; dat<=bits[5]+"0"; next<=dat11;end //?????
-      dat11:  begin  rs<=1; dat<=bits[4]+"0"; next<=dat12;end //?????
-      dat12:  begin  rs<=1; dat<=bits[3]+"0"; next<=dat13;end //?????
-      dat13:  begin  rs<=1; dat<=bits[2]+"0"; next<=dat14;end //?????
-      dat14:  begin  rs<=1; dat<=bits[1]+"0"; next<=dat15;end //?????
-      dat15:  begin  rs<=1; dat<=bits[0]+"0"; next<=dat16;end 
-      dat16:  begin  rs<=1; dat<=decimals[19:16]+"0"; next<=dat17;end 
-      dat17:  begin  rs<=1; dat<=decimals[15:12]+"0"; next<=dat18;end 
-      dat18:  begin  rs<=1; dat<=decimals[11:8]+"0"; next<=dat19;end 
-      dat19:  begin  rs<=1; dat<=decimals[7:4]+"0"; next<=dat20;end 
-      dat20:  begin  rs<=1; dat<=decimals[3:0]+"0"; next<=set0;end 
-      default:   next<=set0; 
+      4:   begin  rs<=1; dat<=bits[15]+"0"; state<=5; end //?????
+      5:   begin  rs<=1; dat<=bits[14]+"0"; state<=6; end //?????
+      6:   begin  rs<=1; dat<=bits[13]+"0"; state<=7; end //?????
+      7:   begin  rs<=1; dat<=bits[12]+"0"; state<=8; end //?????
+      8:   begin  rs<=1; dat<=bits[11]+"0"; state<=9; end //?????
+      9:   begin  rs<=1; dat<=bits[10]+"0"; state<=10; end //?????
+      10:   begin  rs<=1; dat<=bits[9]+"0"; state<=11; end //?????
+      11:   begin  rs<=1; dat<=bits[8]+"0"; state<=12; end //?????
+      12:   begin  rs<=1; dat<=bits[7]+"0"; state<=13; end //?????
+      13:   begin  rs<=1; dat<=bits[6]+"0"; state<=14;end //?????
+      14:  begin  rs<=1; dat<=bits[5]+"0"; state<=15;end //?????
+      15:  begin  rs<=1; dat<=bits[4]+"0"; state<=16;end //?????
+      16:  begin  rs<=1; dat<=bits[3]+"0"; state<=17;end //?????
+      17:  begin  rs<=1; dat<=bits[2]+"0"; state<=18;end //?????
+      18:  begin  rs<=1; dat<=bits[1]+"0"; state<=19;end //?????
+      19:  begin  rs<=1; dat<=bits[0]+"0"; state<=20;end 
+      20:  begin  rs<=1; dat<=decimals[19:16]+"0"; state<=21;end 
+      21:  begin  rs<=1; dat<=decimals[15:12]+"0"; state<=22;end 
+      22:  begin  rs<=1; dat<=decimals[11:8]+"0"; state<=23;end 
+      23:  begin  rs<=1; dat<=decimals[7:4]+"0"; state<=24;end 
+      24:  begin  rs<=1; dat<=decimals[3:0]+"0"; state<=0;end 
+      default:   state<=0; 
     endcase 
   end 
 
@@ -180,30 +166,29 @@ endmodule //lcd
 
 module lcd12864(LCD_N,LCD_P,LCD_RST,PSB,clk, rs, rw, en,dat,
                 key_col, key_row);
-output wire LCD_N, LCD_P, LCD_RST, PSB;
-input clk;  
+  output wire LCD_N, LCD_P, LCD_RST, PSB;
+  input clk;  
 
-wire clk_1MHz;
-clock_slow clock_keypad(clk, clk_1MHz);
+  wire clk_1MHz;
+  clock_slow clock_keypad(clk, clk_1MHz);
 
-output [3:0] key_col;
-input [3:0] key_row;
-wire [15:0] keys;
-reg [15:0] prev_keys= 16'h0000;
-keypad4x4 keypad(clk_1MHz, key_col, key_row, keys);
+  output [3:0] key_col;
+  input [3:0] key_row;
+  wire [15:0] keys;
+  reg [15:0] prev_keys= 16'h0000;
+  keypad4x4 keypad(clk_1MHz, key_col, key_row, keys);
 
-reg [15:0] bits = 16'h0000;
-always @(posedge clk_1MHz) begin
-  bits <= bits ^ (keys & ~prev_keys);
-  prev_keys <= keys;
-end
+  reg [15:0] bits = 16'h0000;
+  always @(posedge clk_1MHz) begin
+    bits <= bits ^ (keys & ~prev_keys);
+    prev_keys <= keys;
+  end
 
-wire [19:0] decimal;
-decimal_converter convert(clk, bits, decimal);
+  wire [19:0] decimals;
+  decimal_converter convert(clk, bits, decimals);
 
-output [7:0] dat; 
-output en, rs, rw;
-lcd display(clk, LCD_N, LCD_P, LCD_RST, PSB, rs, rw, en, dat, bits, decimal);
-
+  output [7:0] dat; 
+  output en, rs, rw;
+  lcd display(clk, LCD_N, LCD_P, LCD_RST, PSB, rs, rw, en, dat, bits, decimals);
 endmodule  
 
