@@ -101,8 +101,8 @@ module lcd(clk, N, P, RST, PSB, rs, rw, en, dat, bits, decimals);
   output reg P;
   output reg RST;
   output reg PSB;
-  output reg rs,rw,en; 
-  output reg [7:0] dat; 
+  output reg rs,rw,en;
+  output reg [7:0] dat;
 
   input clk;
   input [15:0] bits;
@@ -113,7 +113,7 @@ module lcd(clk, N, P, RST, PSB, rs, rw, en, dat, bits, decimals);
                .reg_width(32))
              clock_lcd(clk, clk_380Hz);
 
-  reg [4:0] state=0; 
+  reg [4:0] state=0;
 
   initial
   begin
@@ -123,51 +123,51 @@ module lcd(clk, N, P, RST, PSB, rs, rw, en, dat, bits, decimals);
 
   always @(posedge clk) begin
     en<=clk_380Hz;
-    rw<=0; 
+    rw<=0;
     N<=1'b0;
     P<=1'b1;
     RST<=1'b1;
     PSB<=1'b1;
-  end 
+  end
 
-  always @(posedge clk_380Hz) begin 
-    case(state) 
-      0:   begin  rs<=0; dat<=8'b00110000; state<=1; end 
-      1:   begin  rs<=0; dat<=8'b00001100; state<=2; end 
-      2:   begin  rs<=0; dat<=8'b00000110; state<=3; end// 
-      3:   begin  rs<=0; dat<=8'b00000010; state<=4; end 
-   
-      4:   begin  rs<=1; dat<=bits[15]+"0"; state<=5; end //?????
-      5:   begin  rs<=1; dat<=bits[14]+"0"; state<=6; end //?????
-      6:   begin  rs<=1; dat<=bits[13]+"0"; state<=7; end //?????
-      7:   begin  rs<=1; dat<=bits[12]+"0"; state<=8; end //?????
-      8:   begin  rs<=1; dat<=bits[11]+"0"; state<=9; end //?????
-      9:   begin  rs<=1; dat<=bits[10]+"0"; state<=10; end //?????
-      10:   begin  rs<=1; dat<=bits[9]+"0"; state<=11; end //?????
-      11:   begin  rs<=1; dat<=bits[8]+"0"; state<=12; end //?????
-      12:   begin  rs<=1; dat<=bits[7]+"0"; state<=13; end //?????
-      13:   begin  rs<=1; dat<=bits[6]+"0"; state<=14;end //?????
-      14:  begin  rs<=1; dat<=bits[5]+"0"; state<=15;end //?????
-      15:  begin  rs<=1; dat<=bits[4]+"0"; state<=16;end //?????
-      16:  begin  rs<=1; dat<=bits[3]+"0"; state<=17;end //?????
-      17:  begin  rs<=1; dat<=bits[2]+"0"; state<=18;end //?????
-      18:  begin  rs<=1; dat<=bits[1]+"0"; state<=19;end //?????
-      19:  begin  rs<=1; dat<=bits[0]+"0"; state<=20;end 
-      20:  begin  rs<=1; dat<=decimals[19:16]+"0"; state<=21;end 
-      21:  begin  rs<=1; dat<=decimals[15:12]+"0"; state<=22;end 
-      22:  begin  rs<=1; dat<=decimals[11:8]+"0"; state<=23;end 
-      23:  begin  rs<=1; dat<=decimals[7:4]+"0"; state<=24;end 
-      24:  begin  rs<=1; dat<=decimals[3:0]+"0"; state<=0;end 
-      default:   state<=0; 
-    endcase 
-  end 
+  always @(posedge clk_380Hz) begin
+    case(state)
+      0:   begin  rs<=0; dat<=8'b00110000; state<=1; end
+      1:   begin  rs<=0; dat<=8'b00001100; state<=2; end
+      2:   begin  rs<=0; dat<=8'b00000110; state<=3; end
+      3:   begin  rs<=0; dat<=8'b00000010; state<=4; end
+
+      4:   begin  rs<=1; dat<=bits[15]+"0"; state<=5; end
+      5:   begin  rs<=1; dat<=bits[14]+"0"; state<=6; end
+      6:   begin  rs<=1; dat<=bits[13]+"0"; state<=7; end
+      7:   begin  rs<=1; dat<=bits[12]+"0"; state<=8; end
+      8:   begin  rs<=1; dat<=bits[11]+"0"; state<=9; end
+      9:   begin  rs<=1; dat<=bits[10]+"0"; state<=10; end
+      10:   begin  rs<=1; dat<=bits[9]+"0"; state<=11; end
+      11:   begin  rs<=1; dat<=bits[8]+"0"; state<=12; end
+      12:   begin  rs<=1; dat<=bits[7]+"0"; state<=13; end
+      13:   begin  rs<=1; dat<=bits[6]+"0"; state<=14;end
+      14:  begin  rs<=1; dat<=bits[5]+"0"; state<=15;end
+      15:  begin  rs<=1; dat<=bits[4]+"0"; state<=16;end
+      16:  begin  rs<=1; dat<=bits[3]+"0"; state<=17;end
+      17:  begin  rs<=1; dat<=bits[2]+"0"; state<=18;end
+      18:  begin  rs<=1; dat<=bits[1]+"0"; state<=19;end
+      19:  begin  rs<=1; dat<=bits[0]+"0"; state<=20;end
+      20:  begin  rs<=1; dat<=decimals[19:16]+"0"; state<=21;end
+      21:  begin  rs<=1; dat<=decimals[15:12]+"0"; state<=22;end
+      22:  begin  rs<=1; dat<=decimals[11:8]+"0"; state<=23;end
+      23:  begin  rs<=1; dat<=decimals[7:4]+"0"; state<=24;end
+      24:  begin  rs<=1; dat<=decimals[3:0]+"0"; state<=0;end
+      default:   state<=0;
+    endcase
+  end
 
 endmodule //lcd
 
 module lcd12864(LCD_N,LCD_P,LCD_RST,PSB,clk, rs, rw, en,dat,
                 key_col, key_row);
   output wire LCD_N, LCD_P, LCD_RST, PSB;
-  input clk;  
+  input clk;
 
   wire clk_1MHz;
   clock_slow clock_keypad(clk, clk_1MHz);
@@ -187,8 +187,8 @@ module lcd12864(LCD_N,LCD_P,LCD_RST,PSB,clk, rs, rw, en,dat,
   wire [19:0] decimals;
   decimal_converter convert(clk, bits, decimals);
 
-  output [7:0] dat; 
+  output [7:0] dat;
   output en, rs, rw;
   lcd display(clk, LCD_N, LCD_P, LCD_RST, PSB, rs, rw, en, dat, bits, decimals);
-endmodule  
+endmodule
 

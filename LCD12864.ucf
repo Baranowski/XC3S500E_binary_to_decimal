@@ -1,30 +1,30 @@
-NET "clk" LOC = P184  ;
+NET "clk" LOC = P184;
 
-NET "rs"  LOC = "p36"  ;
+NET "rs"  LOC = "p36";
 NET "rw"  LOC = "p40";
-NET "en"  LOC ="p39"   ;
-NET "dat[0]"  LOC ="p42"  ;
-NET "dat[1]"  LOC = "p41"  ;
-NET "dat[2]"  LOC =  "p47"  ;
-NET "dat[3]"  LOC = "p45"  ;
-NET "dat[4]"  LOC = "p49"  ;
-NET "dat[5]"  LOC =  "p48"    ;
-NET "dat[6]"  LOC = "p55"  ;
-NET "dat[7]"  LOC =  "p50"   ;
-NET "LCD_N"  LOC = "p64"  ;
-NET "LCD_P"  LOC =  "p65"    ;
-NET "PSB"  LOC = "p61"  ;
-NET "LCD_RST"  LOC =  "p63"    ;
+NET "en"  LOC ="p39";
+NET "dat[0]"  LOC ="p42";
+NET "dat[1]"  LOC = "p41";
+NET "dat[2]"  LOC =  "p47";
+NET "dat[3]"  LOC = "p45";
+NET "dat[4]"  LOC = "p49";
+NET "dat[5]"  LOC =  "p48";
+NET "dat[6]"  LOC = "p55";
+NET "dat[7]"  LOC =  "p50";
+NET "LCD_N"  LOC = "p64";
+NET "LCD_P"  LOC =  "p65";
+NET "PSB"  LOC = "p61";
+NET "LCD_RST"  LOC =  "p63";
 
-NET "key_col[0]"  LOC = "p146"  ;
-NET "key_col[1]"  LOC = "p150"  ;
-NET "key_col[2]"  LOC = "p152"  ;
-NET "key_col[3]"  LOC = "p160"  ;
+NET "key_col[0]"  LOC = "p146";
+NET "key_col[1]"  LOC = "p150";
+NET "key_col[2]"  LOC = "p152";
+NET "key_col[3]"  LOC = "p160";
 
-NET "key_row[0]"  LOC = "p144"  ;
-NET "key_row[1]"  LOC = "p139"  ;
-NET "key_row[2]"  LOC = "p137"  ;
-NET "key_row[3]"  LOC = "p134"  ;
+NET "key_row[0]"  LOC = "p144";
+NET "key_row[1]"  LOC = "p139";
+NET "key_row[2]"  LOC = "p137";
+NET "key_row[3]"  LOC = "p134";
 
 NET "key_row[0]"  PULLDOWN;
 NET "key_row[1]"  PULLDOWN;
