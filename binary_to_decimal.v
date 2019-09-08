@@ -164,8 +164,8 @@ module lcd(clk, N, P, RST, PSB, rs, rw, en, dat, bits, decimals);
 
 endmodule //lcd
 
-module lcd12864(LCD_N,LCD_P,LCD_RST,PSB,clk, rs, rw, en,dat,
-                key_col, key_row);
+module binary_to_decimal(LCD_N,LCD_P,LCD_RST,PSB,clk, rs, rw, en,dat,
+                         key_col, key_row);
   output wire LCD_N, LCD_P, LCD_RST, PSB;
   input clk;
 
